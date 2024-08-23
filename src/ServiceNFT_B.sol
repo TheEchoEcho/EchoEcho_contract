@@ -17,7 +17,7 @@ contract ServiceNFT_B is ERC721Enumerable, Ownable(msg.sender) {
         return BASE_URI;
     }
 
-    function freeMint(uint256 _amount) external onlyOwner {
+    function Mint_B(uint256 _amount) external onlyOwner {
         require(_amount <= 5, "You call mint up to 5 tokens at once");
         uint256 nextTokenId_ = nextTokenId;
 
