@@ -39,3 +39,26 @@
 ## ServiceNFT_B【待定】
 - 给一些组织或机构的模版；
 - 可以批量mint，但是每次不能超过5个tokenId，防止超gas，baseURI需要在创建合约的时候指定。
+
+# EchoEcho
+## 上架
+- 服务提供者可以通过`list()`函数上架服务，合约会将服务信息`ServiceInfo`保存在`lists`中；
+- 也可以通过在前端对服务信息签名代表上架服务。
+
+## 下架
+- 通过`list()`上架的服务可以通过`cancelList()`或`cancelListWithSign()`来下架服务；
+- 通过签名上架的服务需要用`cancelListWithSign()`来下架服务。
+
+## 购买服务
+用户付款中的1%打给`feeTo`。
+- 用户可以使用`buy()`购买那些使用`list()`上架的服务；
+- 也可以使用`buyWithSign()`购买那些使用签名上架的服务。
+
+## 中途结束服务
+用户可以在试用时长内取消服务`cancelOrder()`，同时退款金额是建立在手续费之上的，即： `99% * _price * _trialPriceBP`。
+
+## 服务提供者取款
+服务提供者需要在没有进行服务的过程中才能取款`serviceWithdraw()`，避免用户中途结束服务时，金额对不上。
+
+## modifier canService()
+`canService()`是判断当前的服务是否可以购买，防止服务已经下架或者正在提供服务。
