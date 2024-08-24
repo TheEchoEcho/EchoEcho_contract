@@ -68,7 +68,7 @@ interface IEchoEcho {
         bytes32 indexed serviceInfoHash,
         uint256 refundAmount
     );
-    event ServiceWithdraw(
+    event ServiceWithdrawn(
         address indexed provider,
         bytes32 indexed serviceInfoHash,
         uint256 amount
