@@ -1,5 +1,5 @@
 # NFT Contract template
-## ServiceNFT_A
+## contract: ServiceNFT_A
 - **自由Mint机制**：任何用户都可以在下面的几个合约中自由地mint NFT，为每种服务创建一个独一无二的TokenId。并且用户可以为其服务指定一个独特的URI，其中包含服务详情、提供者资料等重要信息。
 
 - **服务分类**：EchoEcho提供几个专门的服务类型：
@@ -36,11 +36,11 @@
 }
 ```
 
-## ServiceNFT_B【待定】
+## contract: ServiceNFT_B【待定】
 - 给一些组织或机构的模版；
 - 可以批量mint，但是每次不能超过5个tokenId，防止超gas，baseURI需要在创建合约的时候指定。
 
-# EchoEcho
+# contract: EchoEcho
 ## 上架
 - 服务提供者可以通过`list()`函数上架服务，合约会将服务信息`ServiceInfo`保存在`lists`中；
 - 也可以通过在前端对服务信息签名代表上架服务。
