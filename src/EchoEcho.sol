@@ -28,22 +28,7 @@ contract EchoEcho is IEchoEcho, EIP712("EchoEcho", "1"), Ownable(msg.sender) {
 
     constructor(address _serviceNFT_A) {
         serviceNFT_A = IServiceNFT_A(_serviceNFT_A);
-    }
-
-    modifier canService(ServiceInfo calldata _list) {
-        bytes32 _serviceInfoHash = this.serviceInfoHash(_list);
-
-        // 检查订单是否已取消
-        if (canceledOrders[_serviceInfoHash]) {
-            revert ListAlreadyCancelled(_serviceInfoHash);
-        }
-
-        // 检查服务者是否正在提供服务
-        if (_isService(_list)) {
-            revert ServicesBeingProvided(_serviceInfoHash);
-        }
-
-        _;
+        feeTo = msg.sender;
     }
 
     function list (
@@ -85,6 +70,28 @@ contract EchoEcho is IEchoEcho, EIP712("EchoEcho", "1"), Ownable(msg.sender) {
         emit List(_list.provider, _serviceInfoHash);
     }
 
+    function cancelList(
+        ServiceInfo calldata _list
+    ) public {
+        bytes32 _serviceInfoHash = this.serviceInfoHash(_list);
+
+        // 检查订单是否已取消
+        if (canceledOrders[_serviceInfoHash]) {
+            revert ListAlreadyCancelled(_serviceInfoHash);
+        }
+
+        canceledOrders[_serviceInfoHash] = true;
+        emit ListCanceled(_list.provider, _serviceInfoHash);
+    }
+
+    function cancelListWithSign(
+        ServiceInfo calldata _list,
+        bytes calldata _providerSignature
+    ) external {
+        _verifyList(_list, _providerSignature);
+        cancelList(_list);
+    }
+
     function buy(
         ServiceInfo calldata _list
     ) external canService(_list) payable {
@@ -123,28 +130,6 @@ contract EchoEcho is IEchoEcho, EIP712("EchoEcho", "1"), Ownable(msg.sender) {
         serviceIncome[_serviceInfoHash] += amount;
 
         emit ServiceBought(msg.sender, _list.provider, _serviceInfoHash, block.timestamp);
-    }
-
-    function cancelList(
-        ServiceInfo calldata _list
-    ) public {
-        bytes32 _serviceInfoHash = this.serviceInfoHash(_list);
-
-        // 检查订单是否已取消
-        if (canceledOrders[_serviceInfoHash]) {
-            revert ListAlreadyCancelled(_serviceInfoHash);
-        }
-
-        canceledOrders[_serviceInfoHash] = true;
-        emit ListCanceled(_list.provider, _serviceInfoHash);
-    }
-
-    function cancelListWithSign(
-        ServiceInfo calldata _list,
-        bytes calldata _providerSignature
-    ) external {
-        _verifyList(_list, _providerSignature);
-        cancelList(_list);
     }
 
     // 用户在试用期内取消订单
@@ -199,7 +184,7 @@ contract EchoEcho is IEchoEcho, EIP712("EchoEcho", "1"), Ownable(msg.sender) {
         serviceIncome[_serviceInfoHash] = 0;
         payable(msg.sender).transfer(amount);
 
-        emit ServiceWithdraw(msg.sender, _serviceInfoHash, amount);
+        emit ServiceWithdrawn(msg.sender, _serviceInfoHash, amount);
     }
 
     function _verifyList(
@@ -246,6 +231,22 @@ contract EchoEcho is IEchoEcho, EIP712("EchoEcho", "1"), Ownable(msg.sender) {
         });
 
         orders[_serviceInfoHash] = _order;
+    }
+
+    modifier canService(ServiceInfo calldata _list) {
+        bytes32 _serviceInfoHash = this.serviceInfoHash(_list);
+
+        // 检查订单是否已取消
+        if (canceledOrders[_serviceInfoHash]) {
+            revert ListAlreadyCancelled(_serviceInfoHash);
+        }
+
+        // 检查服务者是否正在提供服务
+        if (_isService(_list)) {
+            revert ServicesBeingProvided(_serviceInfoHash);
+        }
+
+        _;
     }
 
     // 检查服务者是否正在提供服务, true表示正在提供服务, false表示空闲
