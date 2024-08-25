@@ -36,9 +36,13 @@
 }
 ```
 
+- 重写`transferFrom()`和`safeTransferFrom()`，使得ServiceNFT_A铸造出来的NFT是灵魂绑定的NFT，即不能转让。
+
 ## contract: ServiceNFT_B【待定】
 - 给一些组织或机构的模版；
 - 可以批量mint，但是每次不能超过5个tokenId，防止超gas，baseURI需要在创建合约的时候指定。
+
+- 后续将考虑试用租赁标准：`ERC4907`、`ERC5058`、`ERC6147`来完善`ServiceNFT_B`。
 
 # contract: EchoEcho
 ## 上架
