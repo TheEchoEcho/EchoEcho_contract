@@ -53,9 +53,7 @@ interface IEchoEcho {
         address indexed provider,
         bytes32 indexed serviceInfoHash
     );
-        event ListCanceled(address indexed provider, 
-        bytes32 indexed serviceInfoHash
-    );
+    event ListCanceled(bytes32 indexed serviceInfoHash);
     event ServiceBought(
         address indexed consumer,
         address indexed provider,
@@ -83,9 +81,12 @@ interface IEchoEcho {
     error ListAlreadyCancelled(bytes32 serviceInfoHash);
     error ServicesBeingProvided(bytes32 serviceInfoHash);
     error ErrorMoneyNotEnough(uint256 money, uint256 price);
-    error ErrorWrongSigner(address signer, address provider);
+    error ErrorListSigner();
+    error ErrorCancelListSigner();
     error OnlyProviderWithdraw(address sender, address provider);
     error OnlyConsumerCancelOrder(address sender, address consumer);
     error OrderHasBeenCancelled();
     error TrialDurationExpired();
+    error ListEndTimeExpired(bytes32 serviceInfoHash);
+    error OnlyProviderCancelList(address sender, address provider);
 }

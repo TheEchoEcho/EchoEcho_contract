@@ -25,6 +25,10 @@ contract EchoEcho is IEchoEcho, EIP712("EchoEcho", "1"), Ownable(msg.sender) {
         keccak256(
             "ServiceInfo(address provider,address nft_ca,uint256 token_id,uint256 price,uint256 trialPriceBP, uint256 trialDurationBP, uint256 max_duration,uint256 list_endtime)"
         );
+    bytes32 private constant _CANCELLIST_TYPEHASH = 
+        keccak256(
+            "CancelList(address provider,bytes32 serviceInfoHash)"
+        );
 
     constructor(address _serviceNFT_A) {
         serviceNFT_A = IServiceNFT_A(_serviceNFT_A);
@@ -74,22 +78,32 @@ contract EchoEcho is IEchoEcho, EIP712("EchoEcho", "1"), Ownable(msg.sender) {
         ServiceInfo calldata _list
     ) public {
         bytes32 _serviceInfoHash = this.serviceInfoHash(_list);
-
-        // 检查订单是否已取消
-        if (canceledOrders[_serviceInfoHash]) {
-            revert ListAlreadyCancelled(_serviceInfoHash);
+        // 检查服务提供者是否是当前用户
+        if (lists[_serviceInfoHash].provider != msg.sender) {
+            revert OnlyProviderCancelList(msg.sender, lists[_serviceInfoHash].provider);
         }
 
-        canceledOrders[_serviceInfoHash] = true;
-        emit ListCanceled(_list.provider, _serviceInfoHash);
+        _cancelList(_serviceInfoHash);
     }
 
     function cancelListWithSign(
         ServiceInfo calldata _list,
         bytes calldata _providerSignature
     ) external {
-        _verifyList(_list, _providerSignature);
-        cancelList(_list);
+        bytes32 _serviceInfoHash = this.serviceInfoHash(_list);
+        _verifyCancelList(_serviceInfoHash, _providerSignature);
+        _cancelList(_serviceInfoHash);
+    }
+
+    function _cancelList(
+        bytes32 _serviceInfoHash
+    ) internal {
+        if (canceledOrders[_serviceInfoHash]) {
+            revert ListAlreadyCancelled(_serviceInfoHash);
+        }
+        
+        canceledOrders[_serviceInfoHash] = true;
+        emit ListCanceled(_serviceInfoHash);
     }
 
     function buy(
@@ -214,7 +228,32 @@ contract EchoEcho is IEchoEcho, EIP712("EchoEcho", "1"), Ownable(msg.sender) {
         address _signer = ECDSA.recover(_hash, v, r, s);
 
         if (_signer != _list.provider || _signer == address(0)) {
-            revert ErrorWrongSigner(_signer, _list.provider);
+            revert ErrorListSigner();
+        }
+    }
+
+    function _verifyCancelList(
+        bytes32 _serviceInfoHash,
+        bytes calldata _providerSignature
+    ) internal view {
+        bytes32 hashStruct = keccak256(
+            abi.encode(
+                _CANCELLIST_TYPEHASH,
+                msg.sender,
+                _serviceInfoHash
+            )
+        );
+
+        bytes32 _hash = keccak256(
+            abi.encodePacked("\x19\x01", _domainSeparatorV4(), hashStruct)
+        );
+
+        (uint8 v, bytes32 r, bytes32 s) = Signature.toVRS(_providerSignature);
+
+        address _signer = ECDSA.recover(_hash, v, r, s);
+
+        if (_signer != msg.sender) {
+            revert ErrorCancelListSigner();
         }
     }
 
@@ -239,6 +278,11 @@ contract EchoEcho is IEchoEcho, EIP712("EchoEcho", "1"), Ownable(msg.sender) {
         // 检查订单是否已取消
         if (canceledOrders[_serviceInfoHash]) {
             revert ListAlreadyCancelled(_serviceInfoHash);
+        }
+
+        // 检查end_time是否大于当前时间 
+        if (lists[_serviceInfoHash].list_endtime < block.timestamp) {
+            revert ListEndTimeExpired(_serviceInfoHash);
         }
 
         // 检查服务者是否正在提供服务
