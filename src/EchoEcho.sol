@@ -361,6 +361,10 @@ contract EchoEcho is IEchoEcho, EIP712("EchoEcho", "1"), Ownable(msg.sender) {
         return lists[key];
     }
 
+    function getServiceOrder(bytes32 key) public view returns (ServiceOrder memory) {
+        return orders[key];
+    }
+
     // public domain separator
     function getDomainSeparator() external view returns (bytes32) {
         return _domainSeparatorV4();

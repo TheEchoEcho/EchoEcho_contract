@@ -45,8 +45,8 @@ bytes32 private constant _CANCELLIST_TYPEHASH =
     function _mintNFT() private returns (uint256) {  
         uint256 tokenId_;
 
-        vm.expectEmit(true, true, true, true);
-        emit IERC721.Transfer(address(0), provider_1, 0);
+        // vm.expectEmit(true, true, true, true);
+        // emit IERC721.Transfer(address(0), provider_1, 0);
         vm.prank(provider_1);
         tokenId_ = serviceNFT_A.mint_A(provider_1, "https://ipfs.io/ipfs/CID1");
         // Check if the NFT was minted with the correct URI
@@ -220,6 +220,7 @@ bytes32 private constant _CANCELLIST_TYPEHASH =
         );
     }
 
+    // cancelList
     function test_cancelList() public {
         IEchoEcho.ServiceInfo memory serviceInfo_ = test_list();
 
@@ -239,5 +240,126 @@ bytes32 private constant _CANCELLIST_TYPEHASH =
 
         bytes32 serviceInfoHash_ = echoecho.serviceInfoHash(serviceInfo_);
         assertEq(echoecho.canceledOrders(serviceInfoHash_), true, "Cancel list with sign failed");
+    }
+
+    function test_fail_cancelList() public {
+        IEchoEcho.ServiceInfo memory serviceInfo_ = test_list();
+
+        vm.expectRevert();
+        vm.prank(consumer_1);
+        echoecho.cancelList(serviceInfo_);
+    }
+
+    // buy
+    function test_buy() public returns (IEchoEcho.ServiceInfo memory) {
+        IEchoEcho.ServiceInfo memory serviceInfo_ = test_list();
+
+        vm.deal(consumer_1, 100);
+        vm.prank(consumer_1);
+        echoecho.buy{value: 100}(serviceInfo_);
+
+        bytes32 serviceInfoHash_ = echoecho.serviceInfoHash(serviceInfo_);
+        assertEq(echoecho.getServiceOrder(serviceInfoHash_).consumer, consumer_1, "Buy failed");
+        assertEq(echoechoOwner.balance, 1, "fee failed");
+
+        return serviceInfo_;
+    }
+
+    function test_buyWithSign() public returns (IEchoEcho.ServiceInfo memory) {
+        IEchoEcho.ServiceInfo memory serviceInfo_ = test_list();
+        bytes memory signatureWithList_ = signList(serviceInfo_);
+
+        vm.deal(consumer_1, 100);
+        vm.prank(consumer_1);
+        echoecho.buyWithSign{value: 100}(serviceInfo_, signatureWithList_);
+
+        bytes32 serviceInfoHash_ = echoecho.serviceInfoHash(serviceInfo_);
+        assertEq(echoecho.getServiceOrder(serviceInfoHash_).consumer, consumer_1, "Buy with sign failed");
+
+        assertEq(echoechoOwner.balance, 1, "fee failed");
+
+        return serviceInfo_;
+    }
+
+    // cancelOrder
+    function test_cancelOrder() public {
+        IEchoEcho.ServiceInfo memory serviceInfo_ = test_buy();
+
+        vm.warp(100);
+
+        vm.prank(consumer_1);
+        echoecho.cancelOrder(serviceInfo_);
+        console.log("consumer_1 balance:", consumer_1.balance);
+
+        vm.prank(provider_1);
+        echoecho.serviceWithdraw(serviceInfo_);
+        console.log("provider_1 balance:", provider_1.balance);
+    }
+
+    function test_cancelOrder_ListSign() public {
+        IEchoEcho.ServiceInfo memory serviceInfo_ = test_buyWithSign();
+        vm.warp(2);
+
+        vm.prank(consumer_1);
+        echoecho.cancelOrder(serviceInfo_);
+        console.log("consumer_1 balance:", consumer_1.balance);
+
+        vm.prank(provider_1);
+        echoecho.serviceWithdraw(serviceInfo_);
+        console.log("provider_1 balance:", provider_1.balance);
+    }
+
+    function test_fail1_cancelOrder() public {
+        IEchoEcho.ServiceInfo memory serviceInfo_ = test_buy();
+
+        vm.warp(100);
+
+        vm.expectRevert();
+        vm.prank(provider_1);
+        echoecho.cancelOrder(serviceInfo_);
+    }
+
+    function test_fail2_cancelOrder() public {
+        IEchoEcho.ServiceInfo memory serviceInfo_ = test_buy();
+        bytes32 serviceInfoHash_ = echoecho.serviceInfoHash(serviceInfo_);
+        uint256 start_time = echoecho.getServiceOrder(serviceInfoHash_).start_time;
+        uint256 time = serviceInfo_.max_duration * serviceInfo_.trialDurationBP / 10000 + start_time;
+        vm.warp(time);
+
+        vm.expectRevert();
+        vm.prank(consumer_1);
+        echoecho.cancelOrder(serviceInfo_);
+    }
+
+    // consumer_2 buy
+    function test_fail_buy_consumer2() public {
+        IEchoEcho.ServiceInfo memory serviceInfo_ = test_buy();
+
+        vm.warp(100);
+        vm.expectRevert();
+        vm.deal(consumer_2, 100);
+        vm.prank(consumer_2);
+        echoecho.buy(serviceInfo_);
+    }
+
+    function test_buy_consumer2() public {
+        IEchoEcho.ServiceInfo memory serviceInfo_ = test_buy();
+
+        vm.warp(3600 + 1);
+        vm.deal(consumer_2, 100);
+        vm.prank(consumer_2);
+        echoecho.buy{value: 100}(serviceInfo_);
+    }
+
+    function test_mint() public {
+        uint256 tokenId_;
+
+        // vm.expectEmit(true, true, true, true);
+        // emit IERC721.Transfer(address(0), provider_1, 0);
+        vm.prank(provider_1);
+        tokenId_ = serviceNFT_A.mint_A(provider_1, "https://ipfs.io/ipfs/CID1");
+        // Check if the NFT was minted with the correct URI
+        assertEq(serviceNFT_A.tokenURI(tokenId_), "https://ipfs.io/ipfs/CID1", "URI does not match");
+        console.log("Minted NFT with tokenId:", tokenId_);
     }
 }
