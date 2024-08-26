@@ -17,6 +17,7 @@ contract ServiceNFT_A is IServiceNFT_A, ERC721URIStorage, Ownable(msg.sender) {
         _mint(_recipient, newTokenId);
         _setTokenURI(newTokenId, _uri);
 
+        emit Minted(_recipient, newTokenId);
         return newTokenId;
     }
 
