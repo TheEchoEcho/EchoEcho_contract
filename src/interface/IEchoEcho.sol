@@ -89,4 +89,5 @@ interface IEchoEcho {
     error TrialDurationExpired();
     error ListEndTimeExpired(bytes32 serviceInfoHash);
     error OnlyProviderCancelList(address sender, address provider);
+    error NoIncome();
 }

@@ -90,6 +90,11 @@ contract EchoEcho is IEchoEcho, EIP712("EchoEcho", "1"), Ownable(msg.sender) {
         ServiceInfo calldata _list,
         bytes calldata _providerSignature
     ) external {
+        // 检查服务提供者是否是当前用户
+        if (_list.provider != msg.sender) {
+            revert OnlyProviderCancelList(msg.sender, _list.provider);
+        }
+
         bytes32 _serviceInfoHash = this.serviceInfoHash(_list);
         _verifyCancelList(_serviceInfoHash, _providerSignature);
         _cancelList(_serviceInfoHash);
@@ -191,6 +196,11 @@ contract EchoEcho is IEchoEcho, EIP712("EchoEcho", "1"), Ownable(msg.sender) {
         // 检查取款人是否是服务提供者
         if (msg.sender != _list.provider) {
             revert OnlyProviderWithdraw(msg.sender, _list.provider);
+        }
+
+        // 检查服务提供者是否有收益
+        if (serviceIncome[this.serviceInfoHash(_list)] == 0) {
+            revert NoIncome();
         }
 
         bytes32 _serviceInfoHash = this.serviceInfoHash(_list);
@@ -349,5 +359,10 @@ contract EchoEcho is IEchoEcho, EIP712("EchoEcho", "1"), Ownable(msg.sender) {
 
     function getServiceInfo(bytes32 key) public view returns (ServiceInfo memory) {
         return lists[key];
+    }
+
+    // public domain separator
+    function getDomainSeparator() external view returns (bytes32) {
+        return _domainSeparatorV4();
     }
 }
