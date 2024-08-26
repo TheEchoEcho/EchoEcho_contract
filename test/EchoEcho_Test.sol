@@ -309,6 +309,7 @@ bytes32 private constant _CANCELLIST_TYPEHASH =
         console.log("provider_1 balance:", provider_1.balance);
     }
 
+    // 不是服务提供者取消订单
     function test_fail1_cancelOrder() public {
         IEchoEcho.ServiceInfo memory serviceInfo_ = test_buy();
 
@@ -319,6 +320,7 @@ bytes32 private constant _CANCELLIST_TYPEHASH =
         echoecho.cancelOrder(serviceInfo_);
     }
 
+    // 超时取消订单
     function test_fail2_cancelOrder() public {
         IEchoEcho.ServiceInfo memory serviceInfo_ = test_buy();
         bytes32 serviceInfoHash_ = echoecho.serviceInfoHash(serviceInfo_);
@@ -332,6 +334,7 @@ bytes32 private constant _CANCELLIST_TYPEHASH =
     }
 
     // consumer_2 buy
+    // 最近一次服务结束时间还没有到，购买失败
     function test_fail_buy_consumer2() public {
         IEchoEcho.ServiceInfo memory serviceInfo_ = test_buy();
 
@@ -342,6 +345,7 @@ bytes32 private constant _CANCELLIST_TYPEHASH =
         echoecho.buy(serviceInfo_);
     }
 
+    // 挂单结束时间已过
     function test_buy_consumer2() public {
         IEchoEcho.ServiceInfo memory serviceInfo_ = test_buy();
 
@@ -351,15 +355,13 @@ bytes32 private constant _CANCELLIST_TYPEHASH =
         echoecho.buy{value: 100}(serviceInfo_);
     }
 
-    function test_mint() public {
-        uint256 tokenId_;
+    // 在服务期间，服务提供者不能取款
+    function test_fail_serviceWithdraw() public {
+        IEchoEcho.ServiceInfo memory serviceInfo_ = test_buy();
 
-        // vm.expectEmit(true, true, true, true);
-        // emit IERC721.Transfer(address(0), provider_1, 0);
+        vm.warp(100);
+        vm.expectRevert();
         vm.prank(provider_1);
-        tokenId_ = serviceNFT_A.mint_A(provider_1, "https://ipfs.io/ipfs/CID1");
-        // Check if the NFT was minted with the correct URI
-        assertEq(serviceNFT_A.tokenURI(tokenId_), "https://ipfs.io/ipfs/CID1", "URI does not match");
-        console.log("Minted NFT with tokenId:", tokenId_);
+        echoecho.serviceWithdraw(serviceInfo_);
     }
 }
