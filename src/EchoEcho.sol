@@ -346,4 +346,8 @@ contract EchoEcho is IEchoEcho, EIP712("EchoEcho", "1"), Ownable(msg.sender) {
             )
         );
     }
+
+    function getServiceInfo(bytes32 key) public view returns (ServiceInfo memory) {
+        return lists[key];
+    }
 }
