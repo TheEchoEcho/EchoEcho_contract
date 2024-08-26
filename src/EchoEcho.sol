@@ -23,7 +23,7 @@ contract EchoEcho is IEchoEcho, EIP712("EchoEcho", "1"), Ownable(msg.sender) {
     mapping (bytes32 => uint256) public serviceIncome; // 获得的收益
     bytes32 private constant _PERMIT_TYPEHASH =
         keccak256(
-            "ServiceInfo(address provider,address nft_ca,uint256 token_id,uint256 price,uint256 trialPriceBP, uint256 trialDurationBP, uint256 max_duration,uint256 list_endtime)"
+            "ServiceInfo(address provider,address nft_ca,uint256 token_id,uint256 price,uint256 trialPriceBP,uint256 trialDurationBP,uint256 max_duration,uint256 list_endtime)"
         );
     bytes32 private constant _CANCELLIST_TYPEHASH = 
         keccak256(
