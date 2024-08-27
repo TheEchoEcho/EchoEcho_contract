@@ -1,0 +1,19 @@
+{
+    "title": "Cultural Tour Guide",
+    "description": "Maria, a passionate cultural tour guide, offers immersive tours around Italy's historic landmarks and cultural sites. With a background in art history and fluent in Italian, English, and Hindi, Maria brings a deep understanding of the region’s rich heritage. Her tours are crafted to provide unique experiences that blend learning with leisure, making each trip memorable.",
+    "image": "https://ipfs.io/ipfs/QmRBu7Dv15sPMAyJZdSzXQMvLXv6LwN5EDvpQcandu43Wd",
+    "attributes": [
+        {
+            "type": "Broad category",
+            "value": "Entertainment and Experience"
+        },
+        {
+            "trait_type": "Service type",
+            "value": "Cultural Tour"
+        },
+        {
+            "trait_type": "Language",
+            "value": "Italian, English, Hindi"
+        }
+    ]
+}

@@ -1,0 +1,19 @@
+{
+    "title": "Licensed Psychologist",
+    "description": "Dr. Lee is a licensed psychologist with a PhD in clinical psychology and 15 years of experience in providing mental health services. She specializes in cognitive-behavioral therapy and has helped thousands of clients navigate complex emotional and behavioral issues. Dr. Lee offers sessions in Mandarin and English, providing a comfortable space for her clients to discuss and overcome their challenges.",
+    "image": "https://ipfs.io/ipfs/QmXRZLMyUuDRBWEQ2bPbcNVN6xPsyr9pCwiKmLrQ2ZeawW",
+    "attributes": [
+        {
+            "type": "Broad category",
+            "value": "Health"
+        },
+        {
+            "trait_type": "Service type",
+            "value": "Psychological Counseling"
+        },
+        {
+            "trait_type": "Language",
+            "value": "Mandarin, English"
+        }
+    ]
+}

@@ -1,0 +1,23 @@
+{
+    "title": "Board and Role-playing Game Companion",
+    "description": "Introducing Sophia, a board and role-playing game enthusiast who offers companionship and guidance during game sessions. Whether at a game cafe or a private party, Alex enhances your gaming experience with expert tips and engaging interaction.",
+    "image": "https://ipfs.io/ipfs/QmZdL9oFnRbLWn62a4eXhEPFjwewboV1ewFZrhdGo6AiPt",
+    "attributes": [
+        {
+            "type": "Broad category",
+            "value": "Entertainment and Experience"
+        },
+        {
+            "trait_type": "Service type",
+            "value": "Board and Role-playing Game Companion"
+        },
+        {
+            "trait_type": "Language",
+            "value": "English"
+        },
+        {
+            "trait_type": "Applicable venues",
+            "value": "Game cafes, Private parties"
+        }
+    ]
+}

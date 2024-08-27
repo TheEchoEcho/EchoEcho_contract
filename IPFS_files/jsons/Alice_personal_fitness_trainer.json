@@ -1,0 +1,19 @@
+{
+    "title": "Personal fitness trainer",
+    "description": "Meet Alice, a seasoned personal fitness trainer with over 10 years of professional experience, dedicated to helping individuals achieve their peak physical condition.  Having served over 2,000 clients across various continents, Alice brings a wealth of practical knowledge and motivational skills to her training sessions.  Not only is she fluent in English, but her expertise has also been recognized with several awards, including the 'International Fitness Professional of the Year'.  Whether you're at home or traveling, Alice can tailor her training programs to fit your lifestyle and help you reach your health and fitness goals.",
+    "image": "https://ipfs.io/ipfs/QmVPR3kwKaxorcXiN6hXkLwDHvNbTPuUj6t6svJ18LS54u",
+    "attributes": [
+        {
+            "type": "Broad category",
+            "value": "Health"
+        },
+        {
+            "trait_type": "Service type",
+            "value": "Personal Fitness Trainer"
+        },
+        {
+            "trait_type": "Language",
+            "value": "English"
+        }
+    ]
+}

@@ -1,0 +1,23 @@
+{
+    "title": "Cultural Event Companion",
+    "description": "Meet Emily, your dedicated companion for cultural outings. Emily has a passion for the arts and offers companionship for events such as movies, theater, concerts, or art exhibitions. Perfect for those who prefer not to attend these enriching experiences alone, Emily ensures an enjoyable and sociable outing.",
+    "image": "https://ipfs.io/ipfs/QmUbyWgGjqPpJqzPfcPTLjCoYaSgxYSLdCp6pHoxPz45z1",
+    "attributes": [
+        {
+            "type": "Broad category",
+            "value": "Entertainment and Experience"
+        },
+        {
+            "trait_type": "Service type",
+            "value": "Cultural Event Companion"
+        },
+        {
+            "trait_type": "Language",
+            "value": "English"
+        },
+        {
+            "trait_type": "Applicable venues",
+            "value": "Cultural venues, Cinemas, Concert halls"
+        }
+    ]
+}
