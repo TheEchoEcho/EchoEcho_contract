@@ -80,21 +80,7 @@ interface IEchoEcho {
         bytes32 indexed serviceInfoHash,
         uint256 amount
     );
-    event ConsumerWantBuy(
-        address indexed consumer,
-        address indexed provider,
-        bytes32 indexed serviceInfoHash,
-        uint256 time,
-        uint8 status
-    );
-    event ProviderCanService(
-        address indexed consumer,
-        address indexed provider,
-        bytes32 indexed serviceInfoHash,
-        uint256 time,
-        uint8 status
-    );
-    event PreOrderFinished(
+    event PreBuyOrderStatus(
         address indexed consumer,
         address indexed provider,
         bytes32 indexed serviceInfoHash,

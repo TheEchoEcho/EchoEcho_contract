@@ -20,3 +20,13 @@ forge script script/EchoEcho_Script.sol --rpc-url sepolia --account Dylan_5900 -
   EchoEcho owner: 0x3A8492819b0C9AB5695D447cbA2532b879d25900
   EchoEcho ServiceNFT_A address: 0x153745F7FDc3BC2cF3E64FBFcCcE04A2f1B89554
 ```
+
+# sepolia: 8/27 21:51
+将用户的我想要事件、提供服务者的可以提供事件和最终的购买事件的名字都改为：`PreBuyOrderStatus`。
+
+`【不变】ServiceNFT_A deployed at: 0x153745F7FDc3BC2cF3E64FBFcCcE04A2f1B89554`
+```sh
+  EchoEcho deployed at: 0x2FD9fA0F221e98D2eD12C22b362208BA1E77be18
+  EchoEcho owner: 0x3A8492819b0C9AB5695D447cbA2532b879d25900
+  EchoEcho ServiceNFT_A address: 0x153745F7FDc3BC2cF3E64FBFcCcE04A2f1B89554
+```

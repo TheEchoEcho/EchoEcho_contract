@@ -930,21 +930,7 @@ interface IEchoEcho {
         bytes32 indexed serviceInfoHash,
         uint256 amount
     );
-    event ConsumerWantBuy(
-        address indexed consumer,
-        address indexed provider,
-        bytes32 indexed serviceInfoHash,
-        uint256 time,
-        uint8 status
-    );
-    event ProviderCanService(
-        address indexed consumer,
-        address indexed provider,
-        bytes32 indexed serviceInfoHash,
-        uint256 time,
-        uint8 status
-    );
-    event PreOrderFinished(
+    event PreBuyOrderStatus(
         address indexed consumer,
         address indexed provider,
         bytes32 indexed serviceInfoHash,
@@ -1820,7 +1806,7 @@ contract EchoEcho is IEchoEcho, EIP712("EchoEcho", "1"), Ownable(msg.sender) {
         });
         preBuyStatuses[_serviceInfoHash] = _beforeBuyService_OrderStatus;
 
-        emit ConsumerWantBuy(msg.sender, _list.provider, _serviceInfoHash, block.timestamp, 1);
+        emit PreBuyOrderStatus(msg.sender, _list.provider, _serviceInfoHash, block.timestamp, 1);
     }
 
     // 服务提供者点击“提供”，判断该服务是否可以购买后，会生成结构体，状态变为2
@@ -1847,7 +1833,7 @@ contract EchoEcho is IEchoEcho, EIP712("EchoEcho", "1"), Ownable(msg.sender) {
         });
         preBuyStatuses[_serviceInfoHash] = _beforeBuyService_OrderStatus;
 
-        emit ProviderCanService(preBuyStatuses[_serviceInfoHash].consumer, msg.sender, _serviceInfoHash, block.timestamp, 2);
+        emit PreBuyOrderStatus(preBuyStatuses[_serviceInfoHash].consumer, msg.sender, _serviceInfoHash, block.timestamp, 2);
     }
 
     function buy(
@@ -1890,7 +1876,7 @@ contract EchoEcho is IEchoEcho, EIP712("EchoEcho", "1"), Ownable(msg.sender) {
             status: 3
         });
         preBuyStatuses[_serviceInfoHash] = _beforeBuyService_OrderStatus;
-        emit PreOrderFinished(preBuyStatuses[_serviceInfoHash].consumer, preBuyStatuses[_serviceInfoHash].provider, _serviceInfoHash, block.timestamp, 3);
+        emit PreBuyOrderStatus(preBuyStatuses[_serviceInfoHash].consumer, preBuyStatuses[_serviceInfoHash].provider, _serviceInfoHash, block.timestamp, 3);
 
         _GenerateOrder(_serviceInfoHash, _list);
 
