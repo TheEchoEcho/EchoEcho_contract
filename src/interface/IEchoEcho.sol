@@ -23,6 +23,15 @@ interface IEchoEcho {
         bool cancelOrder; // 是否取消订单
     }
 
+    // 在购买服务前，订单的状态
+    // status: 0: 初始状态， 1: 用户“想要”；2: 服务提供者“提供”；3: 用户“购买”
+    struct PreOrderStatus {
+        address consumer; // 服务消费者
+        address provider; // 服务提供者
+        ServiceInfo serviceInfo; // 服务信息
+        uint8 status; // 订单状态
+    }
+
     function list(
         uint256 _token_id,
         uint256 _price,
@@ -71,6 +80,27 @@ interface IEchoEcho {
         bytes32 indexed serviceInfoHash,
         uint256 amount
     );
+    event ConsumerWantBuy(
+        address indexed consumer,
+        address indexed provider,
+        bytes32 indexed serviceInfoHash,
+        uint256 time,
+        uint8 status
+    );
+    event ProviderCanService(
+        address indexed consumer,
+        address indexed provider,
+        bytes32 indexed serviceInfoHash,
+        uint256 time,
+        uint8 status
+    );
+    event PreOrderFinished(
+        address indexed consumer,
+        address indexed provider,
+        bytes32 indexed serviceInfoHash,
+        uint256 time,
+        uint8 status
+    );
 
     error OnlyOwnerCanList();
     error ErrorListEndTime();
@@ -90,4 +120,8 @@ interface IEchoEcho {
     error ListEndTimeExpired(bytes32 serviceInfoHash);
     error OnlyProviderCancelList(address sender, address provider);
     error NoIncome();
+    error OnlyProviderCanService(address sender, address provider);
+    error OrderWantBuyStatusError(bytes32 serviceInfoHash, uint8 status);
+    error OrderCanServiceStatusError(bytes32 serviceInfoHash, uint8 status);
+    
 }

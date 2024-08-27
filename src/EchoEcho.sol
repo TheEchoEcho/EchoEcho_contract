@@ -16,11 +16,11 @@ contract EchoEcho is IEchoEcho, EIP712("EchoEcho", "1"), Ownable(msg.sender) {
 
     IServiceNFT_A public serviceNFT_A;
     
-
     mapping (bytes32 => ServiceInfo) public lists; // 已上架服务
     mapping (bytes32 => ServiceOrder) public orders; // 最近一次服务订单
     mapping (bytes32 => bool) public canceledOrders; // 已取消订单
     mapping (bytes32 => uint256) public serviceIncome; // 获得的收益
+    mapping (bytes32 => PreOrderStatus) public preBuyStatuses; // 在购买服务前，订单的状态
     bytes32 private constant _PERMIT_TYPEHASH =
         keccak256(
             "ServiceInfo(address provider,address nft_ca,uint256 token_id,uint256 price,uint256 trialPriceBP,uint256 trialDurationBP,uint256 max_duration,uint256 list_endtime)"
@@ -111,6 +111,50 @@ contract EchoEcho is IEchoEcho, EIP712("EchoEcho", "1"), Ownable(msg.sender) {
         emit ListCanceled(_serviceInfoHash);
     }
 
+    // 用户点击“想要”，判断该服务是否可以购买后，会生成结构体，状态变为1
+    function comsumerWantBuy(
+        ServiceInfo calldata _list
+    ) external canService(_list) {
+        bytes32 _serviceInfoHash = this.serviceInfoHash(_list);
+
+        IEchoEcho.PreOrderStatus memory _beforeBuyService_OrderStatus = IEchoEcho.PreOrderStatus({
+            consumer: msg.sender,
+            provider: _list.provider,
+            serviceInfo: _list,
+            status: 1
+        });
+        preBuyStatuses[_serviceInfoHash] = _beforeBuyService_OrderStatus;
+
+        emit ConsumerWantBuy(msg.sender, _list.provider, _serviceInfoHash, block.timestamp, 1);
+    }
+
+    // 服务提供者点击“提供”，判断该服务是否可以购买后，会生成结构体，状态变为2
+    function providerCanService(
+        ServiceInfo calldata _list
+    ) external canService(_list) {
+        bytes32 _serviceInfoHash = this.serviceInfoHash(_list);
+
+        // 检查订单的状态是否为1
+        if (preBuyStatuses[_serviceInfoHash].status != 1) {
+            revert OrderWantBuyStatusError(_serviceInfoHash, preBuyStatuses[_serviceInfoHash].status);
+        }
+
+        // 检查服务提供者是否是当前用户
+        if (preBuyStatuses[_serviceInfoHash].provider != msg.sender) {
+            revert OnlyProviderCanService(msg.sender, preBuyStatuses[_serviceInfoHash].provider);
+        }
+
+        IEchoEcho.PreOrderStatus memory _beforeBuyService_OrderStatus = IEchoEcho.PreOrderStatus({
+            consumer: preBuyStatuses[_serviceInfoHash].consumer,
+            provider: msg.sender,
+            serviceInfo: _list,
+            status: 2
+        });
+        preBuyStatuses[_serviceInfoHash] = _beforeBuyService_OrderStatus;
+
+        emit ProviderCanService(preBuyStatuses[_serviceInfoHash].consumer, msg.sender, _serviceInfoHash, block.timestamp, 2);
+    }
+
     function buy(
         ServiceInfo calldata _list
     ) external canService(_list) payable {
@@ -136,9 +180,22 @@ contract EchoEcho is IEchoEcho, EIP712("EchoEcho", "1"), Ownable(msg.sender) {
         ServiceInfo calldata _list
     ) internal {
         bytes32 _serviceInfoHash = this.serviceInfoHash(_list);
+        // 检查订单的状态是否为2
+        if (preBuyStatuses[_serviceInfoHash].status != 2) {
+            revert OrderCanServiceStatusError(_serviceInfoHash, preBuyStatuses[_serviceInfoHash].status);
+        }
         if (msg.value < _list.price) {
             revert ErrorMoneyNotEnough(msg.value, _list.price);
         }
+
+        IEchoEcho.PreOrderStatus memory _beforeBuyService_OrderStatus = IEchoEcho.PreOrderStatus({
+            consumer: preBuyStatuses[_serviceInfoHash].consumer,
+            provider: preBuyStatuses[_serviceInfoHash].provider,
+            serviceInfo: _list,
+            status: 3
+        });
+        preBuyStatuses[_serviceInfoHash] = _beforeBuyService_OrderStatus;
+        emit PreOrderFinished(preBuyStatuses[_serviceInfoHash].consumer, preBuyStatuses[_serviceInfoHash].provider, _serviceInfoHash, block.timestamp, 3);
 
         _GenerateOrder(_serviceInfoHash, _list);
 

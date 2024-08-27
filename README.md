@@ -54,6 +54,16 @@
 - 通过签名上架的服务需要用`cancelListWithSign()`来下架服务。
 
 ## 购买服务
+- 服务提供者：Alice，购买者：Bob
+- Bob对某个订单点击我想要（即调用`comsumerWantBuy()`），前端会发送一个zk proof给Alice;
+- Alice可以知道他们之间的距离后，选择是否接受该订单；如果Alice选择接单(即调用`providerCanService()`);
+- 那么Bob可以选择和Alice聊天或者直接购买(调用`buy()`)；
+
+- 订单状态(`PreOrderStatus`)：  
+    - 我想要：1
+    - Alice接受订单：2
+    - 购买：3  
+
 用户付款中的1%打给`feeTo`。
 - 用户可以使用`buy()`购买那些使用`list()`上架的服务；
 - 也可以使用`buyWithSign()`购买那些使用签名上架的服务。
