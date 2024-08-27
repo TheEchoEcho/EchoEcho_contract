@@ -12,9 +12,7 @@ contract OnlyEchoEcho_Script is Script {
         EchoEcho echoecho = new EchoEcho(_serviceNFT_A_address);
         vm.stopBroadcast();
 
-        console.log("ServiceNFT_A deployed at:", _serviceNFT_A_address);
         console.log("EchoEcho deployed at:", address(echoecho));
-        console.log("ServiceNFT_A owner:", _serviceNFT_A_address);
         console.log("EchoEcho owner:", echoecho.owner());
         console.log("EchoEcho ServiceNFT_A address:", address(echoecho.serviceNFT_A()));
     }
