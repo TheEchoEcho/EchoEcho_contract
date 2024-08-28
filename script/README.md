@@ -30,3 +30,12 @@ forge script script/EchoEcho_Script.sol --rpc-url sepolia --account Dylan_5900 -
   EchoEcho owner: 0x3A8492819b0C9AB5695D447cbA2532b879d25900
   EchoEcho ServiceNFT_A address: 0x153745F7FDc3BC2cF3E64FBFcCcE04A2f1B89554
 ```
+
+# sepolia: 8/28 14:14
+`【不变】ServiceNFT_A deployed at: 0x153745F7FDc3BC2cF3E64FBFcCcE04A2f1B89554`
+
+```sh
+  EchoEcho deployed at: 0x37a20FB4FB275CCf658f508C29bba8f8Af93fD31
+  EchoEcho owner: 0x3A8492819b0C9AB5695D447cbA2532b879d25900
+  EchoEcho ServiceNFT_A address: 0x153745F7FDc3BC2cF3E64FBFcCcE04A2f1B89554
+```
