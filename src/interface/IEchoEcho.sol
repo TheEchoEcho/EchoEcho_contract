@@ -40,11 +40,15 @@ interface IEchoEcho {
         uint256 _max_duration,
         uint256 _list_endtime
     ) external;
-
     function cancelList(ServiceInfo calldata _list) external;
     function cancelListWithSign(
         ServiceInfo calldata _list,
         bytes calldata _providerSignature
+    ) external;
+    function consumerWantBuy(ServiceInfo calldata _list) external;
+    function providerCanService(
+        address _consumer,
+        ServiceInfo calldata _list
     ) external;
     function buy(ServiceInfo calldata _serviceInfo) external payable;
     function buyWithSign(

@@ -251,10 +251,40 @@ bytes32 private constant _CANCELLIST_TYPEHASH =
     }
 
     // buy
-    function test_buy() public returns (IEchoEcho.ServiceInfo memory) {
+    function test_newBuy() public returns (IEchoEcho.ServiceInfo memory) {
         IEchoEcho.ServiceInfo memory serviceInfo_ = test_list();
 
         vm.deal(consumer_1, 100);
+        vm.expectEmit(true, true, true, true);
+        emit IEchoEcho.PreBuyOrderStatus(
+            consumer_1,
+            provider_1,
+            echoecho.serviceInfoHash(serviceInfo_),
+            block.timestamp,
+            1
+        );
+        vm.prank(consumer_1);
+        echoecho.consumerWantBuy(serviceInfo_);
+
+        vm.expectEmit(true, true, true, true);
+        emit IEchoEcho.PreBuyOrderStatus(
+            consumer_1,
+            provider_1,
+            echoecho.serviceInfoHash(serviceInfo_),
+            block.timestamp,
+            2
+        );
+        vm.prank(provider_1);
+        echoecho.providerCanService(consumer_1, serviceInfo_);
+
+        vm.expectEmit(true, true, true, true);
+        emit IEchoEcho.PreBuyOrderStatus(
+            consumer_1,
+            provider_1,
+            echoecho.serviceInfoHash(serviceInfo_),
+            block.timestamp,
+            3
+        );
         vm.prank(consumer_1);
         echoecho.buy{value: 100}(serviceInfo_);
 
@@ -265,25 +295,140 @@ bytes32 private constant _CANCELLIST_TYPEHASH =
         return serviceInfo_;
     }
 
-    function test_buyWithSign() public returns (IEchoEcho.ServiceInfo memory) {
+    // 服务正在进行中，不能选择我想要
+    function test_fail1_buy() public {
+        IEchoEcho.ServiceInfo memory serviceInfo_ = test_newBuy();
+
+        vm.warp(100);
+
+        vm.expectRevert();
+        vm.prank(consumer_2);
+        echoecho.consumerWantBuy(serviceInfo_);
+    }
+
+    // 当两个用户同时选择我想要时，服务提供者都可以接单
+    function test_ProviderDouble() public returns(IEchoEcho.ServiceInfo memory) {
         IEchoEcho.ServiceInfo memory serviceInfo_ = test_list();
-        bytes memory signatureWithList_ = signList(serviceInfo_);
 
         vm.deal(consumer_1, 100);
+        vm.deal(consumer_2, 100);
+        vm.expectEmit(true, true, true, true);
+        emit IEchoEcho.PreBuyOrderStatus(
+            consumer_1,
+            provider_1,
+            echoecho.serviceInfoHash(serviceInfo_),
+            block.timestamp,
+            1
+        );
         vm.prank(consumer_1);
-        echoecho.buyWithSign{value: 100}(serviceInfo_, signatureWithList_);
+        echoecho.consumerWantBuy(serviceInfo_);
 
-        bytes32 serviceInfoHash_ = echoecho.serviceInfoHash(serviceInfo_);
-        assertEq(echoecho.getServiceOrder(serviceInfoHash_).consumer, consumer_1, "Buy with sign failed");
+        vm.expectEmit(true, true, true, true);
+        emit IEchoEcho.PreBuyOrderStatus(
+            consumer_2,
+            provider_1,
+            echoecho.serviceInfoHash(serviceInfo_),
+            block.timestamp,
+            1
+        );
+        vm.prank(consumer_2);
+        echoecho.consumerWantBuy(serviceInfo_);
 
-        assertEq(echoechoOwner.balance, 1, "fee failed");
+        vm.expectEmit(true, true, true, true);
+        emit IEchoEcho.PreBuyOrderStatus(
+            consumer_1,
+            provider_1,
+            echoecho.serviceInfoHash(serviceInfo_),
+            block.timestamp,
+            2
+        );
+        vm.prank(provider_1);
+        echoecho.providerCanService(consumer_1, serviceInfo_);
+
+        vm.expectEmit(true, true, true, true);
+        emit IEchoEcho.PreBuyOrderStatus(
+            consumer_2,
+            provider_1,
+            echoecho.serviceInfoHash(serviceInfo_),
+            block.timestamp,
+            2
+        );
+        vm.prank(provider_1);
+        echoecho.providerCanService(consumer_2, serviceInfo_);
 
         return serviceInfo_;
     }
 
+    // 两个用户同时选择我想要，服务提供者接consumer_1的单后，consumer_1 买了，服务提供者不能再接单
+    function test_fail_buy_noProvider() public {
+        IEchoEcho.ServiceInfo memory serviceInfo_ = test_list();
+
+        vm.deal(consumer_1, 100);
+        vm.deal(consumer_2, 100);
+        vm.expectEmit(true, true, true, true);
+        emit IEchoEcho.PreBuyOrderStatus(
+            consumer_1,
+            provider_1,
+            echoecho.serviceInfoHash(serviceInfo_),
+            block.timestamp,
+            1
+        );
+        vm.prank(consumer_1);
+        echoecho.consumerWantBuy(serviceInfo_);
+
+        vm.expectEmit(true, true, true, true);
+        emit IEchoEcho.PreBuyOrderStatus(
+            consumer_2,
+            provider_1,
+            echoecho.serviceInfoHash(serviceInfo_),
+            block.timestamp,
+            1
+        );
+        vm.prank(consumer_2);
+        echoecho.consumerWantBuy(serviceInfo_);
+
+        vm.expectEmit(true, true, true, true);
+        emit IEchoEcho.PreBuyOrderStatus(
+            consumer_1,
+            provider_1,
+            echoecho.serviceInfoHash(serviceInfo_),
+            block.timestamp,
+            2
+        );
+        vm.prank(provider_1);
+        echoecho.providerCanService(consumer_1, serviceInfo_);
+
+        vm.prank(consumer_1);
+        echoecho.buy{value: 100}(serviceInfo_);
+
+        vm.expectRevert();
+        vm.prank(provider_1);
+        echoecho.providerCanService(consumer_2, serviceInfo_);
+    }
+
+    // 但是当一个用户买了后，另一个用户不能再买
+    function test_fail2_buy() public {
+        IEchoEcho.ServiceInfo memory serviceInfo_ = test_ProviderDouble();
+
+        vm.expectEmit(true, true, true, true);
+        emit IEchoEcho.PreBuyOrderStatus(
+            consumer_1,
+            provider_1,
+            echoecho.serviceInfoHash(serviceInfo_),
+            block.timestamp,
+            3
+        );
+        vm.prank(consumer_1);
+        echoecho.buy{value: 100}(serviceInfo_);
+
+        vm.expectRevert();
+        vm.prank(consumer_2);
+        echoecho.buy{value: 100}(serviceInfo_);
+    }
+
     // cancelOrder
     function test_cancelOrder() public {
-        IEchoEcho.ServiceInfo memory serviceInfo_ = test_buy();
+        IEchoEcho.ServiceInfo memory serviceInfo_ = test_newBuy();
 
         vm.warp(100);
 
@@ -296,22 +441,10 @@ bytes32 private constant _CANCELLIST_TYPEHASH =
         console.log("provider_1 balance:", provider_1.balance);
     }
 
-    function test_cancelOrder_ListSign() public {
-        IEchoEcho.ServiceInfo memory serviceInfo_ = test_buyWithSign();
-        vm.warp(2);
-
-        vm.prank(consumer_1);
-        echoecho.cancelOrder(serviceInfo_);
-        console.log("consumer_1 balance:", consumer_1.balance);
-
-        vm.prank(provider_1);
-        echoecho.serviceWithdraw(serviceInfo_);
-        console.log("provider_1 balance:", provider_1.balance);
-    }
-
-    // 不是服务提供者取消订单
+    
+    // 不是当前用户取消订单
     function test_fail1_cancelOrder() public {
-        IEchoEcho.ServiceInfo memory serviceInfo_ = test_buy();
+        IEchoEcho.ServiceInfo memory serviceInfo_ = test_newBuy();
 
         vm.warp(100);
 
@@ -322,7 +455,7 @@ bytes32 private constant _CANCELLIST_TYPEHASH =
 
     // 超时取消订单
     function test_fail2_cancelOrder() public {
-        IEchoEcho.ServiceInfo memory serviceInfo_ = test_buy();
+        IEchoEcho.ServiceInfo memory serviceInfo_ = test_newBuy();
         bytes32 serviceInfoHash_ = echoecho.serviceInfoHash(serviceInfo_);
         uint256 start_time = echoecho.getServiceOrder(serviceInfoHash_).start_time;
         uint256 time = serviceInfo_.max_duration * serviceInfo_.trialDurationBP / 10000 + start_time;
@@ -333,35 +466,74 @@ bytes32 private constant _CANCELLIST_TYPEHASH =
         echoecho.cancelOrder(serviceInfo_);
     }
 
-    // consumer_2 buy
+    // consumer_2 wantbuy
     // 最近一次服务结束时间还没有到，购买失败
     function test_fail_buy_consumer2() public {
-        IEchoEcho.ServiceInfo memory serviceInfo_ = test_buy();
+        IEchoEcho.ServiceInfo memory serviceInfo_ = test_newBuy();
 
-        vm.warp(100);
+        vm.warp(3600);
         vm.expectRevert();
-        vm.deal(consumer_2, 100);
         vm.prank(consumer_2);
-        echoecho.buy(serviceInfo_);
+        echoecho.consumerWantBuy(serviceInfo_);
     }
 
-    // 挂单结束时间已过
+    // 上一笔订单服务结束，可以选择我想要
     function test_buy_consumer2() public {
-        IEchoEcho.ServiceInfo memory serviceInfo_ = test_buy();
+        IEchoEcho.ServiceInfo memory serviceInfo_ = test_newBuy();
 
         vm.warp(3600 + 1);
         vm.deal(consumer_2, 100);
         vm.prank(consumer_2);
-        echoecho.buy{value: 100}(serviceInfo_);
+        echoecho.consumerWantBuy;
     }
 
     // 在服务期间，服务提供者不能取款
     function test_fail_serviceWithdraw() public {
-        IEchoEcho.ServiceInfo memory serviceInfo_ = test_buy();
+        IEchoEcho.ServiceInfo memory serviceInfo_ = test_newBuy();
 
         vm.warp(100);
         vm.expectRevert();
         vm.prank(provider_1);
         echoecho.serviceWithdraw(serviceInfo_);
     }
+
+    // 服务结束后，服务提供者可以取款
+    function test_serviceWithdraw() public {
+        IEchoEcho.ServiceInfo memory serviceInfo_ = test_newBuy();
+
+        vm.warp(3600+1);
+        vm.prank(provider_1);
+        echoecho.serviceWithdraw(serviceInfo_);
+        console.log("provider_1 balance:", provider_1.balance);
+    }
+
+    // function test_buyWithSign() public returns (IEchoEcho.ServiceInfo memory) {
+    //     IEchoEcho.ServiceInfo memory serviceInfo_ = test_list();
+    //     bytes memory signatureWithList_ = signList(serviceInfo_);
+
+    //     vm.deal(consumer_1, 100);
+    //     vm.prank(consumer_1);
+    //     echoecho.buyWithSign{value: 100}(serviceInfo_, signatureWithList_);
+
+    //     bytes32 serviceInfoHash_ = echoecho.serviceInfoHash(serviceInfo_);
+    //     assertEq(echoecho.getServiceOrder(serviceInfoHash_).consumer, consumer_1, "Buy with sign failed");
+
+    //     assertEq(echoechoOwner.balance, 1, "fee failed");
+
+    //     return serviceInfo_;
+    // }
+
+    // function test_cancelOrder_ListSign() public {
+    //     IEchoEcho.ServiceInfo memory serviceInfo_ = test_buyWithSign();
+    //     vm.warp(2);
+
+    //     vm.prank(consumer_1);
+    //     echoecho.cancelOrder(serviceInfo_);
+    //     console.log("consumer_1 balance:", consumer_1.balance);
+
+    //     vm.prank(provider_1);
+    //     echoecho.serviceWithdraw(serviceInfo_);
+    //     console.log("provider_1 balance:", provider_1.balance);
+    // }
+
 }
