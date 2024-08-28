@@ -16,8 +16,8 @@ interface IEchoEcho {
     }
 
     struct Longitude_Latitude {
-        int256 longitude; // 经度
         int256 latitude; // 纬度
+        int256 longitude; // 经度
     }
 
     // 服务订单
@@ -67,10 +67,10 @@ interface IEchoEcho {
     function serviceInfoHash(ServiceInfo calldata _list) external pure returns (bytes32);
     function upgradeLocation(
         uint256 _token_id,
-        int256 _longitude,
-        int256 _latitude
+        int256 _latitude,
+        int256 _longitude
     ) external;
-    
+
     event FeeToChanged(address indexed feeTo);
     event List(
         address indexed provider,

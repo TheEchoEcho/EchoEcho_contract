@@ -433,11 +433,16 @@ contract EchoEcho is IEchoEcho, EIP712("EchoEcho", "1"), Ownable(msg.sender) {
         return _domainSeparatorV4();
     }
 
-    function upgradeLocation(uint256 _tokenId, int256 longitude, int256 latitude) external {
+    // Latitude: 22.3658801
+    // Longitude: 113.5939815
+    // 前端需要将经纬度乘以1e4，再向上取整，变成整数
+    // 例如：22.3658801 => 223659
+    // 例如：113.5939815 => 113594
+    function upgradeLocation(uint256 _tokenId, int256 _latitude, int256 _longitude) external {
         // 检查token_id的owner是否是当前用户
         if (serviceNFT_A.ownerOf(_tokenId) != msg.sender) {
             revert OnlyOwnerCanUpgradeLocation();
         }
-        tokenLocation[_tokenId] = Longitude_Latitude(longitude, latitude);
+        tokenLocation[_tokenId] = Longitude_Latitude(_latitude, _longitude);
     }
 }

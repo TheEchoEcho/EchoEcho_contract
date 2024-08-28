@@ -39,3 +39,21 @@ forge script script/EchoEcho_Script.sol --rpc-url sepolia --account Dylan_5900 -
   EchoEcho owner: 0x3A8492819b0C9AB5695D447cbA2532b879d25900
   EchoEcho ServiceNFT_A address: 0x153745F7FDc3BC2cF3E64FBFcCcE04A2f1B89554
 ```
+
+# sepolia: 8/28 16:38
+`【不变】ServiceNFT_A deployed at: 0x153745F7FDc3BC2cF3E64FBFcCcE04A2f1B89554`
+
+增加更新经纬度函数。
+```solidity
+    // Latitude: 22.3658801
+    // Longitude: 113.5939815
+    // 前端需要将经纬度乘以1e4，再向上取整，变成整数
+    // 例如：22.3658801 => 223659
+    // 例如：113.5939815 => 113594
+```
+
+```sh
+EchoEcho deployed at: 0xbc6d1DFAd7E95E7D3809C3BF3a2EB5720412417B
+  EchoEcho owner: 0x3A8492819b0C9AB5695D447cbA2532b879d25900
+  EchoEcho ServiceNFT_A address: 0x153745F7FDc3BC2cF3E64FBFcCcE04A2f1B89554
+```
