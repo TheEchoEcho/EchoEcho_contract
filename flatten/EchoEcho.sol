@@ -865,6 +865,11 @@ interface IEchoEcho {
         uint256 list_endtime; // 挂单结束时间
     }
 
+    struct Longitude_Latitude {
+        int256 latitude; // 纬度
+        int256 longitude; // 经度
+    }
+
     // 服务订单
     struct ServiceOrder {
         address consumer; // 服务消费者
@@ -910,6 +915,11 @@ interface IEchoEcho {
     function setFeeTo(address _feeTo) external;
     function setServiceNFT_A(address _serviceNFT_A) external;
     function serviceInfoHash(ServiceInfo calldata _list) external pure returns (bytes32);
+    function upgradeLocation(
+        uint256 _token_id,
+        int256 _latitude,
+        int256 _longitude
+    ) external;
 
     event FeeToChanged(address indexed feeTo);
     event List(
@@ -941,6 +951,10 @@ interface IEchoEcho {
         uint256 time,
         uint8 status
     );
+    event TokenIdListed(
+        uint256 indexed token_id,
+        bytes32 indexed serviceInfoHash
+    );
 
     error OnlyOwnerCanList();
     error ErrorListEndTime();
@@ -963,7 +977,7 @@ interface IEchoEcho {
     error OnlyProviderCanService(address sender, address provider);
     error OrderWantBuyStatusError(bytes32 serviceInfoHash, uint8 status);
     error OrderCanServiceStatusError(bytes32 serviceInfoHash, uint8 status);
-    
+    error OnlyOwnerCanUpgradeLocation();
 }
 
 // src/utils/Signature.sol
@@ -1706,6 +1720,9 @@ contract EchoEcho is IEchoEcho, EIP712("EchoEcho", "1"), Ownable(msg.sender) {
     mapping (bytes32 => bool) public canceledOrders; // 已取消订单
     mapping (bytes32 => uint256) public serviceIncome; // 获得的收益
     mapping (address => mapping (bytes32 => PreOrderStatus)) public preBuyStatuses; // 在购买服务前，订单的状态(consumer => serviceInfoHash => PreOrderStatus)
+    mapping (uint256 => Longitude_Latitude) public tokenLocation; // NFT tokenId => 经纬度
+    mapping (uint256 => ServiceInfo) public tokenId_ServiceInfo; // NFT tokenId => 服务信息
+
     bytes32 private constant _PERMIT_TYPEHASH =
         keccak256(
             "ServiceInfo(address provider,address nft_ca,uint256 token_id,uint256 price,uint256 trialPriceBP,uint256 trialDurationBP,uint256 max_duration,uint256 list_endtime)"
@@ -1756,7 +1773,9 @@ contract EchoEcho is IEchoEcho, EIP712("EchoEcho", "1"), Ownable(msg.sender) {
         }
 
         lists[_serviceInfoHash] = _list;
+        tokenId_ServiceInfo[_token_id] = _list;
         emit List(_list.provider, _serviceInfoHash);
+        emit TokenIdListed(_token_id, _serviceInfoHash);
     }
 
     function cancelList(
@@ -2111,5 +2130,18 @@ contract EchoEcho is IEchoEcho, EIP712("EchoEcho", "1"), Ownable(msg.sender) {
     // public domain separator
     function getDomainSeparator() external view returns (bytes32) {
         return _domainSeparatorV4();
+    }
+
+    // Latitude: 22.3658801
+    // Longitude: 113.5939815
+    // 前端需要将经纬度乘以1e4，再向上取整，变成整数
+    // 例如：22.3658801 => 223659
+    // 例如：113.5939815 => 113594
+    function upgradeLocation(uint256 _tokenId, int256 _latitude, int256 _longitude) external {
+        // 检查token_id的owner是否是当前用户
+        if (serviceNFT_A.ownerOf(_tokenId) != msg.sender) {
+            revert OnlyOwnerCanUpgradeLocation();
+        }
+        tokenLocation[_tokenId] = Longitude_Latitude(_latitude, _longitude);
     }
 }
