@@ -15,6 +15,11 @@ interface IEchoEcho {
         uint256 list_endtime; // 挂单结束时间
     }
 
+    struct Longitude_Latitude {
+        int256 longitude; // 经度
+        int256 latitude; // 纬度
+    }
+
     // 服务订单
     struct ServiceOrder {
         address consumer; // 服务消费者
@@ -60,7 +65,12 @@ interface IEchoEcho {
     function setFeeTo(address _feeTo) external;
     function setServiceNFT_A(address _serviceNFT_A) external;
     function serviceInfoHash(ServiceInfo calldata _list) external pure returns (bytes32);
-
+    function upgradeLocation(
+        uint256 _token_id,
+        int256 _longitude,
+        int256 _latitude
+    ) external;
+    
     event FeeToChanged(address indexed feeTo);
     event List(
         address indexed provider,
@@ -91,6 +101,10 @@ interface IEchoEcho {
         uint256 time,
         uint8 status
     );
+    event TokenIdListed(
+        uint256 indexed token_id,
+        bytes32 indexed serviceInfoHash
+    );
 
     error OnlyOwnerCanList();
     error ErrorListEndTime();
@@ -113,5 +127,5 @@ interface IEchoEcho {
     error OnlyProviderCanService(address sender, address provider);
     error OrderWantBuyStatusError(bytes32 serviceInfoHash, uint8 status);
     error OrderCanServiceStatusError(bytes32 serviceInfoHash, uint8 status);
-    
+    error OnlyOwnerCanUpgradeLocation();
 }
