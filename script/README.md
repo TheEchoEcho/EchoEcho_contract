@@ -53,7 +53,7 @@ forge script script/EchoEcho_Script.sol --rpc-url sepolia --account Dylan_5900 -
 ```
 
 ```sh
-  EchoEcho deployed at: 0x35BBFCEB569d10E18322A2538fBa2d215daFD335
+  EchoEcho deployed at: 0x0E5411a8139bFd38fbe19ce9ED8224Ff12b575Ab
   EchoEcho owner: 0x3A8492819b0C9AB5695D447cbA2532b879d25900
   EchoEcho ServiceNFT_A address: 0x153745F7FDc3BC2cF3E64FBFcCcE04A2f1B89554
 ```

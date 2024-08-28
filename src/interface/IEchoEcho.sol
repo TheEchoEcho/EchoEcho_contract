@@ -105,6 +105,11 @@ interface IEchoEcho {
         uint256 indexed token_id,
         bytes32 indexed serviceInfoHash
     );
+    event LocationUpgraded(
+        uint256 indexed token_id,
+        int256 latitude,
+        int256 longitude
+    );
 
     error OnlyOwnerCanList();
     error ErrorListEndTime();
@@ -128,4 +133,5 @@ interface IEchoEcho {
     error OrderWantBuyStatusError(bytes32 serviceInfoHash, uint8 status);
     error OrderCanServiceStatusError(bytes32 serviceInfoHash, uint8 status);
     error OnlyOwnerCanUpgradeLocation();
+    error ListWantBuyStatusError(bytes32 serviceInfoHash, uint8 status);
 }

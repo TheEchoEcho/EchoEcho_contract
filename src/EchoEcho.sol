@@ -122,6 +122,11 @@ contract EchoEcho is IEchoEcho, EIP712("EchoEcho", "1"), Ownable(msg.sender) {
     ) external canService(_list) {
         bytes32 _serviceInfoHash = this.serviceInfoHash(_list);
 
+        // 只有状态是0或3的时候才能点击“想要”
+        if (preBuyStatuses[msg.sender][_serviceInfoHash].status != 0 && preBuyStatuses[msg.sender][_serviceInfoHash].status != 3) {
+            revert ListWantBuyStatusError(_serviceInfoHash, preBuyStatuses[msg.sender][_serviceInfoHash].status);
+        }
+
         IEchoEcho.PreOrderStatus memory _preOrderStatus = IEchoEcho.PreOrderStatus({
             consumer: msg.sender,
             provider: _list.provider,
@@ -444,5 +449,7 @@ contract EchoEcho is IEchoEcho, EIP712("EchoEcho", "1"), Ownable(msg.sender) {
             revert OnlyOwnerCanUpgradeLocation();
         }
         tokenLocation[_tokenId] = Longitude_Latitude(_latitude, _longitude);
+
+        emit LocationUpgraded(_tokenId, _latitude, _longitude);
     }
 }
