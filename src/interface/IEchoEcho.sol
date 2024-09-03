@@ -10,7 +10,7 @@ interface IEchoEcho {
         uint256 token_id; // NFT tokenId
         uint256 price; // 价格
         uint256 trialPriceBP; // 试用价格， 5000 trial price besis points = 50% of the (price - fee)
-        uint256 trialDurationBP; // 使用时长，5000 trial duration besis points = 50% of the max duration
+        uint256 trialDurationBP; // 试用时长，5000 trial duration besis points = 50% of the max duration
         uint256 max_duration; // 最大时长
         uint256 list_endtime; // 挂单结束时间
     }
