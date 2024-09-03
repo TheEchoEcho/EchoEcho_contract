@@ -21,12 +21,12 @@ contract ServiceNFT_A is IServiceNFT_A, ERC721URIStorage, Ownable(msg.sender) {
         return newTokenId;
     }
 
-    // 重写 transferFrom，禁止转移
+    // override transferFrom to disable transfer
     function transferFrom(address, address, uint256) public pure override(ERC721, IERC721) {
         revert("SoulboundToken: transferFrom disabled");
     }
 
-    // 重写 safeTransferFrom，禁止转移
+    // override safeTransferFrom to disable transfer
     function safeTransferFrom(address, address, uint256, bytes memory) public pure override(ERC721, IERC721) {
         revert("SoulboundToken: safeTransferFrom(data) disabled");
     }

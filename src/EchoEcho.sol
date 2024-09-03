@@ -16,13 +16,13 @@ contract EchoEcho is IEchoEcho, EIP712("EchoEcho", "1"), Ownable(msg.sender) {
 
     IServiceNFT_A public serviceNFT_A;
     
-    mapping (bytes32 => ServiceInfo) public lists; // 已上架服务
-    mapping (bytes32 => ServiceOrder) public orders; // 最近一次服务订单
-    mapping (bytes32 => bool) public canceledOrders; // 已取消订单
-    mapping (bytes32 => uint256) public serviceIncome; // 获得的收益
-    mapping (address => mapping (bytes32 => PreOrderStatus)) public preBuyStatuses; // 在购买服务前，订单的状态(consumer => serviceInfoHash => PreOrderStatus)
-    mapping (uint256 => Longitude_Latitude) public tokenLocation; // NFT tokenId => 经纬度
-    mapping (uint256 => ServiceInfo) public tokenId_ServiceInfo; // NFT tokenId => 服务信息
+    mapping (bytes32 => ServiceInfo) public lists; // Listed services
+    mapping (bytes32 => ServiceOrder) public orders; // Most recent service order
+    mapping (bytes32 => bool) public canceledOrders; // Canceled orders
+    mapping (bytes32 => uint256) public serviceIncome; // Earned revenue
+    mapping (address => mapping (bytes32 => PreOrderStatus)) public preBuyStatuses; // Order statuses before purchasing the service (consumer => serviceInfoHash => PreOrderStatus)
+    mapping (uint256 => Longitude_Latitude) public tokenLocation; // NFT tokenId => latitude and longitude
+    mapping (uint256 => ServiceInfo) public tokenId_ServiceInfo; // NFT tokenId => service information
 
     bytes32 private constant _PERMIT_TYPEHASH =
         keccak256(
@@ -46,12 +46,12 @@ contract EchoEcho is IEchoEcho, EIP712("EchoEcho", "1"), Ownable(msg.sender) {
         uint256 _max_duration,
         uint256 _list_endtime
     ) external {
-        // 检查token_id的owner是否是当前用户
+        // Check if the token_id owner is the current user
         if (serviceNFT_A.ownerOf(_token_id) != msg.sender) {
             revert OnlyOwnerCanList();
         }
 
-        // 检查挂单结束时间是否大于当前时间
+        // check if the listing end time is greater than the current time
         if (_list_endtime < block.timestamp) {
             revert ErrorListEndTime();
         }
@@ -83,7 +83,7 @@ contract EchoEcho is IEchoEcho, EIP712("EchoEcho", "1"), Ownable(msg.sender) {
         ServiceInfo calldata _list
     ) public {
         bytes32 _serviceInfoHash = this.serviceInfoHash(_list);
-        // 检查服务提供者是否是当前用户
+        // Check if the service provider is the current user
         if (lists[_serviceInfoHash].provider != msg.sender) {
             revert OnlyProviderCancelList(msg.sender, lists[_serviceInfoHash].provider);
         }
@@ -95,7 +95,7 @@ contract EchoEcho is IEchoEcho, EIP712("EchoEcho", "1"), Ownable(msg.sender) {
         ServiceInfo calldata _list,
         bytes calldata _providerSignature
     ) external {
-        // 检查服务提供者是否是当前用户
+        // Check if the service provider is the current user
         if (_list.provider != msg.sender) {
             revert OnlyProviderCancelList(msg.sender, _list.provider);
         }
@@ -116,13 +116,13 @@ contract EchoEcho is IEchoEcho, EIP712("EchoEcho", "1"), Ownable(msg.sender) {
         emit ListCanceled(_serviceInfoHash);
     }
 
-    // 用户点击“想要”，判断该服务是否可以购买后，会生成结构体，状态变为1
+    // User clicks "I Want," after checking if the service is purchasable, a structure is generated, and the status is set to 1
     function consumerWantBuy(
         ServiceInfo calldata _list
     ) external canService(_list) {
         bytes32 _serviceInfoHash = this.serviceInfoHash(_list);
 
-        // 只有状态是0或3的时候才能点击“想要”
+        // Only when the status is 0 or 3 can "I Want" be clicked
         if (preBuyStatuses[msg.sender][_serviceInfoHash].status != 0 && preBuyStatuses[msg.sender][_serviceInfoHash].status != 3) {
             revert ListWantBuyStatusError(_serviceInfoHash, preBuyStatuses[msg.sender][_serviceInfoHash].status);
         }
@@ -138,19 +138,19 @@ contract EchoEcho is IEchoEcho, EIP712("EchoEcho", "1"), Ownable(msg.sender) {
         emit PreBuyOrderStatus(msg.sender, _list.provider, _serviceInfoHash, block.timestamp, 1);
     }
 
-    // 服务提供者点击“提供”，判断该服务是否可以购买后，会生成结构体，状态变为2
+    // Service provider clicks "Can Provide," after checking if the service is purchasable, a structure is generated, and the status is set to 2
     function providerCanService(
         address _consumer,
         ServiceInfo calldata _list
     ) external canService(_list) {
         bytes32 _serviceInfoHash = this.serviceInfoHash(_list);
 
-        // 检查订单的状态是否为1
+        // Check if the order status is 1
         if (preBuyStatuses[_consumer][_serviceInfoHash].status != 1) {
             revert OrderWantBuyStatusError(_serviceInfoHash, preBuyStatuses[_consumer][_serviceInfoHash].status);
         }
 
-        // 检查服务提供者是否是当前用户
+        // Check if the service provider is the current user
         if (preBuyStatuses[_consumer][_serviceInfoHash].provider != msg.sender) {
             revert OnlyProviderCanService(msg.sender, preBuyStatuses[_consumer][_serviceInfoHash].provider);
         }
@@ -171,7 +171,7 @@ contract EchoEcho is IEchoEcho, EIP712("EchoEcho", "1"), Ownable(msg.sender) {
     ) external canService(_list) payable {
         bytes32 _serviceInfoHash = this.serviceInfoHash(_list);
 
-        // 检查服务是否上架
+        // Check if the service is listed
         if (lists[_serviceInfoHash].provider == address(0)) {
             revert ErrorServiceNotListed(_serviceInfoHash);
         }
@@ -191,7 +191,7 @@ contract EchoEcho is IEchoEcho, EIP712("EchoEcho", "1"), Ownable(msg.sender) {
         ServiceInfo calldata _list
     ) internal {
         bytes32 _serviceInfoHash = this.serviceInfoHash(_list);
-        // 检查订单的状态是否为2
+        // Check if the order status is 2
         if (preBuyStatuses[msg.sender][_serviceInfoHash].status != 2) {
             revert OrderCanServiceStatusError(_serviceInfoHash, preBuyStatuses[msg.sender][_serviceInfoHash].status);
         }
@@ -210,7 +210,7 @@ contract EchoEcho is IEchoEcho, EIP712("EchoEcho", "1"), Ownable(msg.sender) {
 
         _GenerateOrder(_serviceInfoHash, _list);
 
-        // 转账
+        // Transfer funds
         uint256 fee = msg.value * feeBP / 10000;
         uint256 amount = msg.value - fee;
         payable(feeTo).transfer(fee);
@@ -219,23 +219,23 @@ contract EchoEcho is IEchoEcho, EIP712("EchoEcho", "1"), Ownable(msg.sender) {
         emit ServiceBought(msg.sender, _list.provider, _serviceInfoHash, block.timestamp);
     }
 
-    // 用户在试用期内取消订单
+    // User cancels the order within the trial period
     function cancelOrder(
         ServiceInfo calldata _list
     ) external {
         bytes32 _serviceInfoHash = this.serviceInfoHash(_list);
 
-        // 检查订单的消费者是否是当前用户
+        // Check if the order's consumer is the current user
         if (orders[_serviceInfoHash].consumer != msg.sender) {
             revert OnlyConsumerCancelOrder(msg.sender, orders[_serviceInfoHash].consumer);
         }
 
-        // 检查订单是否已经取消过了
+        // Check if the order has already been canceled
         if (orders[_serviceInfoHash].cancelOrder) {
             revert OrderHasBeenCancelled();
         }
 
-        // 检查订单是否在试用期内
+        // Check if the order is within the trial period
         uint256 max_trial_duration = orders[_serviceInfoHash].start_time + _list.trialDurationBP * _list.max_duration / 10000;
         if (block.timestamp >= max_trial_duration) {
             revert TrialDurationExpired();
@@ -243,13 +243,13 @@ contract EchoEcho is IEchoEcho, EIP712("EchoEcho", "1"), Ownable(msg.sender) {
 
         orders[_serviceInfoHash].cancelOrder = true;
 
-        // 计算退款金额
-        // 先计算扣除手续费后的金额
+        // Calculate the refund amount
+        // First, calculate the amount after deducting the fee
         uint256 fee = _list.price * feeBP / 10000;
         uint256 amount = _list.price - fee;
-        // 计算试用期内的金额
+        // Calculate the amount during the trial period
         uint256 trialAmount = _list.trialPriceBP * amount / 10000;
-        // 退款
+        // Refund
         uint256 refundAmount = amount - trialAmount;
         payable(msg.sender).transfer(refundAmount);
         serviceIncome[_serviceInfoHash] -= refundAmount;
@@ -257,16 +257,16 @@ contract EchoEcho is IEchoEcho, EIP712("EchoEcho", "1"), Ownable(msg.sender) {
         emit OrderCancelled(msg.sender, _list.provider, _serviceInfoHash, refundAmount);
     }
 
-    // 服务提供者提取某个服务的收益
+    // Service provider withdraws earnings from a service
     function serviceWithdraw(
         ServiceInfo calldata _list
     ) external canService(_list) {
-        // 检查取款人是否是服务提供者
+        // Check if the withdrawer is the service provider
         if (msg.sender != _list.provider) {
             revert OnlyProviderWithdraw(msg.sender, _list.provider);
         }
 
-        // 检查服务提供者是否有收益
+        // Check if the service provider has earnings
         if (serviceIncome[this.serviceInfoHash(_list)] == 0) {
             revert NoIncome();
         }
@@ -339,7 +339,7 @@ contract EchoEcho is IEchoEcho, EIP712("EchoEcho", "1"), Ownable(msg.sender) {
         bytes32 _serviceInfoHash,
         ServiceInfo calldata _list
     ) internal {
-        // 生成订单
+        // Generate an order
         ServiceOrder memory _order = ServiceOrder({
             consumer: msg.sender,
             start_time: block.timestamp,
@@ -353,17 +353,17 @@ contract EchoEcho is IEchoEcho, EIP712("EchoEcho", "1"), Ownable(msg.sender) {
     modifier canService(ServiceInfo calldata _list) {
         bytes32 _serviceInfoHash = this.serviceInfoHash(_list);
 
-        // 检查订单是否已取消
+        // Check if the order has been canceled
         if (canceledOrders[_serviceInfoHash]) {
             revert ListAlreadyCancelled(_serviceInfoHash);
         }
 
-        // 检查end_time是否大于当前时间 
+        // Check if the end_time is greater than the current time 
         if (lists[_serviceInfoHash].list_endtime < block.timestamp) {
             revert ListEndTimeExpired(_serviceInfoHash);
         }
 
-        // 检查服务者是否正在提供服务
+        // Check if the provider is currently providing the service
         if (_isService(_list)) {
             revert ServicesBeingProvided(_serviceInfoHash);
         }
@@ -371,7 +371,7 @@ contract EchoEcho is IEchoEcho, EIP712("EchoEcho", "1"), Ownable(msg.sender) {
         _;
     }
 
-    // 检查服务者是否正在提供服务, true表示正在提供服务, false表示空闲
+    // Check if the provider is currently providing the service, true indicates the service is being provided, false indicates free
     function _isService(
         ServiceInfo calldata _list
         ) internal view returns (bool) {
@@ -380,10 +380,10 @@ contract EchoEcho is IEchoEcho, EIP712("EchoEcho", "1"), Ownable(msg.sender) {
         if (orders[_serviceInfoHash].consumer != address(0)) {
             ServiceOrder memory _lastOrder = orders[_serviceInfoHash];
             uint256 endTime = _lastOrder.start_time + _list.max_duration;
-            // 上一次订单到结束时间，即用户没有取消(callcelOrder=false) 空闲
-            // 上一次订单到结束时间 且 用户取消了(callcelOrder=true) 空闲
-            // 上一次订单没有到结束时间，但是用户取消了(callcelOrder=true) ，空闲
-            // 上一次订单没有到结束时间，同时用户没有取消(callcelOrder=false)，正在提供服务
+            // From the last order to the end time, i.e., the user did not cancel (cancelOrder=false), free
+            // From the last order to the end time and the user canceled (cancelOrder=true), free
+            // From the last order has not reached the end time, but the user canceled (cancelOrder=true), free
+            // The last order has not reached the end time, and the user did not cancel (cancelOrder=false), the service is being provided
             if (block.timestamp < endTime && !_lastOrder.cancelOrder) {
                 return true;
             }
@@ -440,11 +440,11 @@ contract EchoEcho is IEchoEcho, EIP712("EchoEcho", "1"), Ownable(msg.sender) {
 
     // Latitude: 22.3658801
     // Longitude: 113.5939815
-    // 前端需要将经纬度乘以1e4，再向上取整，变成整数
-    // 例如：22.3658801 => 223659
-    // 例如：113.5939815 => 113594
+    // The frontend needs to multiply the latitude and longitude by 1e4, then round up to make it an integer
+    // Example: 22.3658801 => 223659
+    // Example: 113.5939815 => 113594
     function upgradeLocation(uint256 _tokenId, int256 _latitude, int256 _longitude) external {
-        // 检查token_id的owner是否是当前用户
+        // Check if the token_id owner is the current user
         if (serviceNFT_A.ownerOf(_tokenId) != msg.sender) {
             revert OnlyOwnerCanUpgradeLocation();
         }

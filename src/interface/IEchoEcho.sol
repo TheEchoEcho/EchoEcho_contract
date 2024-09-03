@@ -5,36 +5,35 @@ interface IEchoEcho {
 
     // 服务信息
     struct ServiceInfo {
-        address provider; // 服务提供者
-        address nft_ca; // NFT合约地址
+        address provider; // service provider
+        address nft_ca; // NFT contract address
         uint256 token_id; // NFT tokenId
-        uint256 price; // 价格
-        uint256 trialPriceBP; // 试用价格， 5000 trial price besis points = 50% of the (price - fee)
-        uint256 trialDurationBP; // 试用时长，5000 trial duration besis points = 50% of the max duration
-        uint256 max_duration; // 最大时长
-        uint256 list_endtime; // 挂单结束时间
+        uint256 price;
+        uint256 trialPriceBP; // trial price， 5000 trial price besis points = 50% of the (price - fee)
+        uint256 trialDurationBP; // trial duration，5000 trial duration besis points = 50% of the max duration
+        uint256 max_duration; // max duration
+        uint256 list_endtime; // list end time
     }
 
     struct Longitude_Latitude {
-        int256 latitude; // 纬度
-        int256 longitude; // 经度
+        int256 latitude;
+        int256 longitude;
     }
 
-    // 服务订单
     struct ServiceOrder {
-        address consumer; // 服务消费者
-        uint256 start_time; // 服务开始时间
-        ServiceInfo serviceInfo; // 服务信息
-        bool cancelOrder; // 是否取消订单
+        address consumer; // service consumer
+        uint256 start_time; // service start time
+        ServiceInfo serviceInfo; // service information
+        bool cancelOrder; // cancel order
     }
 
-    // 在购买服务前，订单的状态
-    // status: 0: 初始状态， 1: 用户“想要”；2: 服务提供者“提供”；3: 用户“购买”
+    // The status of the order before the purchase of the service
+    // status: 0: indicates the initial status. 1: indicates the user "wants". 2: The service provider "provides"; 3: User "purchase"
     struct PreOrderStatus {
-        address consumer; // 服务消费者
-        address provider; // 服务提供者
-        ServiceInfo serviceInfo; // 服务信息
-        uint8 status; // 订单状态
+        address consumer; // service consumer
+        address provider; // service provider
+        ServiceInfo serviceInfo; // service information
+        uint8 status;
     }
 
     function list(
